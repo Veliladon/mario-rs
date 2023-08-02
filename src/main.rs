@@ -9,9 +9,10 @@ pub use crate::components::*;
 pub use crate::input::*;
 pub use crate::resources::*;
 pub use crate::states::*;
+pub use leafwing_input_manager::prelude::*;
 
-use bevy::log::LogPlugin;
-use bevy::prelude::*;
+pub use bevy::log::LogPlugin;
+pub use bevy::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 400.;
 
@@ -46,6 +47,14 @@ pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
             },
             sprite: TextureAtlasSprite::new(0),
             ..Default::default()
+        })
+        .insert(InputManagerBundle::<PlatformAction> {
+            action_state: ActionState::default(),
+            input_map: InputMap::new([
+                (KeyCode::Left, PlatformAction::Left),
+                (KeyCode::Right, PlatformAction::Right),
+                (KeyCode::Space, PlatformAction::Jump),
+            ]),
         })
         .insert(Player {
             walking_state: PlayerState::Idle,
