@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 #[derive(Resource)]
 pub struct PlayerAssets {
-    pub sheet: Handle<TextureAtlas>,
+    pub handle: Handle<TextureAtlas>,
 }
 
 #[derive(Resource)]

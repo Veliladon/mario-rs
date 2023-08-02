@@ -7,9 +7,9 @@ pub const PLAYER_SPRITE_SHEET: &str = "blue_alien.png";
 pub const PLAYER_SPRITE_WIDTH: f32 = 16.;
 pub const PLAYER_SPRITE_HEIGHT: f32 = 20.;
 
-impl Plugin for GameBoardPlugin {
+impl Plugin for AssetLoadingPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, load_assets);
+        app.add_systems(PreStartup, load_assets);
     }
 }
 
@@ -31,6 +31,8 @@ pub fn load_assets(
 
     let player_atlas = texture_atlases.add(player_texture_atlas);
     let player_assets: PlayerAssets = PlayerAssets {
-        sheet: player_texture_atlas,
+        handle: player_atlas,
     };
+    commands.insert_resource(player_assets);
+    info!("Inserted Player Assets!");
 }

@@ -3,5 +3,5 @@ use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Player {
-    pub state: PlayerState,
+    pub walking_state: PlayerState,
 }
