@@ -17,6 +17,7 @@ pub use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 400.;
+pub const JUMP_HEIGHT: f32 = 2.;
 
 fn main() {
     App::new()

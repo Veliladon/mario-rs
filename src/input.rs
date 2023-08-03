@@ -46,7 +46,7 @@ pub fn player_control(mut player_query: Query<(&ActionState<PlatformAction>, &mu
         && (player.walking_state == PlayerState::Idle
             || player.walking_state == PlayerState::Walking)
     {
-        direction.y = 2.0;
+        direction.y = JUMP_HEIGHT;
         next_state = PlayerState::Jumping;
         info!("Jump!");
     }
