@@ -17,6 +17,9 @@ pub fn process_physics(mut player_query: Query<(&mut Player, &mut Transform)>, t
     if player.velocity.y != 0.0 && transform.translation.y >= 0.0 {
         transform.translation.y += player.velocity.y * PLAYER_SPEED * time.delta_seconds();
         player.velocity.y -= 9.8 * time.delta_seconds();
+        if player.velocity.y.is_sign_negative() {
+            player.walking_state = PlayerState::Falling;
+        }
     }
 
     if transform.translation.y < 0.0 {
