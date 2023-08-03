@@ -40,7 +40,7 @@ fn main() {
 }
 
 pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
-    // Spawn Camera
+    // Spawn the main Camera, PrimaryCamera component means the zoom system will never panic
     commands
         .spawn(Camera2dBundle::default())
         .insert(PrimaryCamera);
