@@ -33,7 +33,6 @@ fn main() {
         )
         .add_plugins(AssetLoadingPlugin)
         .add_systems(Startup, game_setup)
-        .add_systems(PostStartup, zoom_2d)
         .add_plugins(InputPlugin)
         .add_plugins(PhysicsPlugin)
         .run();
@@ -42,7 +41,13 @@ fn main() {
 pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
     // Spawn the main Camera, PrimaryCamera component means the zoom system will never panic
     commands
-        .spawn(Camera2dBundle::default())
+        .spawn(Camera2dBundle {
+            projection: OrthographicProjection {
+                scale: (1. / SCALE),
+                ..default()
+            },
+            ..default()
+        })
         .insert(PrimaryCamera);
 
     // Spawn Player Sprite
@@ -51,10 +56,10 @@ pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
             texture_atlas: texture_atlas.handle.clone(),
             transform: Transform {
                 translation: Vec3::new(0.0, 0.0, 5.0),
-                ..Default::default()
+                ..default()
             },
             sprite: TextureAtlasSprite::new(0),
-            ..Default::default()
+            ..default()
         })
         .insert(InputManagerBundle::<PlatformAction> {
             action_state: ActionState::default(),
@@ -69,10 +74,4 @@ pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
             velocity: Vec2::new(0., 0.),
         });
     info!("Spawned Player");
-}
-
-fn zoom_2d(mut q: Query<&mut OrthographicProjection, With<PrimaryCamera>>) {
-    let mut projection = q.single_mut();
-
-    projection.scale *= 1. / SCALE;
 }
