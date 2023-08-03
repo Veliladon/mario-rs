@@ -74,5 +74,5 @@ pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
 fn zoom_2d(mut q: Query<&mut OrthographicProjection, With<PrimaryCamera>>) {
     let mut projection = q.single_mut();
 
-    projection.scale *= (1. / SCALE);
+    projection.scale *= 1. / SCALE;
 }
