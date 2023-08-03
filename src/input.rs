@@ -33,7 +33,6 @@ pub fn player_control(mut player_query: Query<(&ActionState<PlatformAction>, &mu
     let mut direction = player.velocity;
     let mut next_state = PlayerState::Idle;
 
-    //info!("{:?}", action_state);
     if action_state.pressed(PlatformAction::Left) {
         direction.x = -1.0;
         next_state = PlayerState::Walking;
@@ -42,6 +41,9 @@ pub fn player_control(mut player_query: Query<(&ActionState<PlatformAction>, &mu
         direction.x = 1.0;
         next_state = PlayerState::Walking;
     }
+
+    // Player must be on the ground to jump.
+
     if action_state.just_pressed(PlatformAction::Jump)
         && (player.walking_state == PlayerState::Idle
             || player.walking_state == PlayerState::Walking)
@@ -50,6 +52,8 @@ pub fn player_control(mut player_query: Query<(&ActionState<PlatformAction>, &mu
         next_state = PlayerState::Jumping;
         info!("Jump!");
     }
+
+    // Physics module takes the player state back to idle after finishing the jump
 
     if player.walking_state == PlayerState::Jumping || player.walking_state == PlayerState::Falling
     {
