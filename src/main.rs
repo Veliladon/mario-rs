@@ -32,6 +32,7 @@ fn main() {
         )
         .add_plugins(AssetLoadingPlugin)
         .add_systems(Startup, game_setup)
+        .add_systems(PostStartup, zoom_2d)
         .add_plugins(InputPlugin)
         .add_plugins(PhysicsPlugin)
         .run();
@@ -39,7 +40,9 @@ fn main() {
 
 pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
     // Spawn Camera
-    commands.spawn(Camera2dBundle::default());
+    commands
+        .spawn(Camera2dBundle::default())
+        .insert(PrimaryCamera);
 
     // Spawn Player Sprite
     commands
@@ -65,4 +68,10 @@ pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
             velocity: Vec2::new(0., 0.),
         });
     info!("Spawned Player");
+}
+
+fn zoom_2d(mut q: Query<&mut OrthographicProjection, With<PrimaryCamera>>) {
+    let mut projection = q.single_mut();
+
+    projection.scale *= 0.5;
 }
