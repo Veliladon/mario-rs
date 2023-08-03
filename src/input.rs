@@ -27,14 +27,12 @@ impl Plugin for InputPlugin {
     }
 }
 
-pub fn player_control(
-    mut player_query: Query<(&ActionState<PlatformAction>, &mut Player, &mut Transform)>,
-    time: Res<Time>,
-) {
-    let mut direction = Vec2::new(0.0, 0.0);
+pub fn player_control(mut player_query: Query<(&ActionState<PlatformAction>, &mut Player)>) {
+    let (action_state, mut player) = player_query.single_mut();
+
+    let mut direction = player.velocity;
     let mut next_state = PlayerState::Idle;
 
-    let (action_state, mut player, mut transform) = player_query.single_mut();
     //info!("{:?}", action_state);
     if action_state.pressed(PlatformAction::Left) {
         direction.x = -1.0;
@@ -44,11 +42,20 @@ pub fn player_control(
         direction.x = 1.0;
         next_state = PlayerState::Walking;
     }
-    if action_state.just_pressed(PlatformAction::Jump) {
+    if action_state.just_pressed(PlatformAction::Jump)
+        && (player.walking_state == PlayerState::Idle
+            || player.walking_state == PlayerState::Walking)
+    {
+        direction.y = 2.0;
+        next_state = PlayerState::Jumping;
         info!("Jump!");
     }
 
-    transform.translation.x =
-        transform.translation.x + (direction.x * PLAYER_SPEED * time.delta_seconds());
+    if player.walking_state == PlayerState::Jumping || player.walking_state == PlayerState::Falling
+    {
+        next_state = player.walking_state.clone();
+    }
+
+    player.velocity = direction;
     player.walking_state = next_state;
 }

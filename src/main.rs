@@ -1,12 +1,14 @@
 mod assets;
 mod components;
 mod input;
+mod physics;
 mod resources;
 mod states;
 
 pub use crate::assets::*;
 pub use crate::components::*;
 pub use crate::input::*;
+pub use crate::physics::*;
 pub use crate::resources::*;
 pub use crate::states::*;
 pub use leafwing_input_manager::prelude::*;
@@ -30,6 +32,7 @@ fn main() {
         .add_plugins(AssetLoadingPlugin)
         .add_systems(Startup, game_setup)
         .add_plugins(InputPlugin)
+        .add_plugins(PhysicsPlugin)
         .run();
 }
 
@@ -58,6 +61,7 @@ pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
         })
         .insert(Player {
             walking_state: PlayerState::Idle,
+            velocity: Vec2::new(0., 0.),
         });
     info!("Spawned Player");
 }

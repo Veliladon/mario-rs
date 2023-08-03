@@ -16,3 +16,11 @@ pub enum PlayerState {
     Jumping,
     Falling,
 }
+
+#[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
+pub enum GroundedState {
+    #[default]
+    Grounded,
+    Jumping,
+    Falling,
+}
