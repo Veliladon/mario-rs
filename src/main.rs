@@ -18,6 +18,7 @@ pub use bevy::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 400.;
 pub const JUMP_HEIGHT: f32 = 2.;
+pub const SCALE: f32 = 2.;
 
 fn main() {
     App::new()
@@ -73,5 +74,5 @@ pub fn game_setup(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
 fn zoom_2d(mut q: Query<&mut OrthographicProjection, With<PrimaryCamera>>) {
     let mut projection = q.single_mut();
 
-    projection.scale *= 0.5;
+    projection.scale *= (1. / SCALE);
 }
