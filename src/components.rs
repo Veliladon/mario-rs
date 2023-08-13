@@ -9,3 +9,6 @@ pub struct Player {
 
 #[derive(Component)]
 pub struct PrimaryCamera;
+
+#[derive(Component)]
+pub struct Chunk;
