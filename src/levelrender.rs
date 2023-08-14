@@ -13,14 +13,11 @@ impl Plugin for LevelRenderPlugin {
 pub fn spawn_level(
     mut commands: Commands,
     background_assets: Res<BackgroundAssets>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
     mut game_data: ResMut<GameWorld>,
 ) {
-    let window = window_query.get_single().unwrap();
-
     // let level_chunk = LevelChunk::default();
 
-    let visible_chunks = find_visible_chunks(window, 100.);
+    let visible_chunks = find_visible_chunks(100.);
 
     for chunk in visible_chunks.chunk_list.iter() {
         let chunk_id = create_chunk(
@@ -84,17 +81,44 @@ pub fn create_chunk(
 }
 
 pub fn render_level(
-    commands: Commands,
+    mut commands: Commands,
     visible_chunks: Res<VisibleChunks>,
     player_query: Query<&Transform, With<Player>>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    background_assets: Res<BackgroundAssets>,
+    mut game_data: ResMut<GameWorld>,
 ) {
-    let window = window_query.get_single().unwrap();
     let transform = player_query.get_single().unwrap();
-    let new_visible_chunks = find_visible_chunks(window, transform.translation.x);
+    let new_visible_chunks = find_visible_chunks(transform.translation.x);
+
+    for chunk in visible_chunks.chunk_list.iter() {
+        if new_visible_chunks.chunk_list.get(chunk).is_none() {
+            info!("Chunk {:?} has disappeared", chunk);
+        }
+    }
+
+    for chunk in new_visible_chunks.chunk_list.iter() {
+        if visible_chunks.chunk_list.get(chunk).is_none() {
+            info!("Chunk {:?} has appeared", chunk);
+            let new_chunk_id = create_chunk(
+                &mut commands,
+                *chunk,
+                &game_data.level.get(0).unwrap().chunks.get(*chunk).unwrap(),
+                &background_assets,
+            );
+            game_data
+                .level
+                .get_mut(0)
+                .unwrap()
+                .chunk_map
+                .insert(*chunk, new_chunk_id);
+            info!("Created chunk {:?} - Entity {:?}", chunk, new_chunk_id);
+        }
+    }
+
+    commands.insert_resource(new_visible_chunks);
 }
 
-pub fn find_visible_chunks(window: &Window, player_location: f32) -> VisibleChunks {
+pub fn find_visible_chunks(player_location: f32) -> VisibleChunks {
     // Chunk player is in
     let player_chunk = player_location as usize / (CHUNK_WIDTH * BG_UNIT_WIDTH as usize);
 
