@@ -96,7 +96,7 @@ pub fn render_level(
 
 pub fn find_visible_chunks(window: &Window, player_location: f32) -> VisibleChunks {
     // Chunk player is in
-    let player_chunk = player_location as usize / window.width() as usize;
+    let player_chunk = player_location as usize / (CHUNK_WIDTH * BG_UNIT_WIDTH as usize);
 
     // If they're in the first chunk don't give back -1
     let mut previous_chunk = None;
@@ -113,6 +113,6 @@ pub fn find_visible_chunks(window: &Window, player_location: f32) -> VisibleChun
     }
     chunk_list.insert(player_chunk);
     chunk_list.insert(next_chunk);
-    info!("{:?}", chunk_list);
+    //info!("{:?}", chunk_list);
     VisibleChunks { chunk_list }
 }
