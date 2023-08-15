@@ -19,6 +19,7 @@ pub use crate::resources::*;
 pub use crate::states::*;
 
 use bevy::window::PrimaryWindow;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 pub use leafwing_input_manager::prelude::*;
 
 pub use bevy::log::LogPlugin;
@@ -52,6 +53,7 @@ fn main() {
                     filter: "info,wgpu_core=warn,wgpu_hal=warn".into(),
                 }),
         )
+        .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(AssetLoadingPlugin)
         .add_plugins(PlayerCameraPlugin)
         .add_systems(Startup, spawn_player)

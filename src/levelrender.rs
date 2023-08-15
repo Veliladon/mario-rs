@@ -93,6 +93,18 @@ pub fn render_level(
     for chunk in visible_chunks.chunk_list.iter() {
         if new_visible_chunks.chunk_list.get(chunk).is_none() {
             info!("Chunk {:?} has disappeared", chunk);
+            let removed_chunk = game_data
+                .level
+                .get_mut(0)
+                .unwrap()
+                .chunk_map
+                .remove(chunk)
+                .unwrap();
+            commands.entity(removed_chunk).despawn_recursive();
+            info!(
+                "Chunk {:?} removed, entity {:?} deleted",
+                chunk, removed_chunk
+            );
         }
     }
 
