@@ -1,15 +1,18 @@
 mod assets;
 mod components;
+mod debugizmo;
 mod input;
 mod levelgenerator;
 mod levelrender;
 mod physics;
 mod playercamera;
+mod playercontroller;
 mod resources;
 mod states;
 
 pub use crate::assets::*;
 pub use crate::components::*;
+pub use crate::debugizmo::*;
 pub use crate::input::*;
 pub use crate::levelgenerator::*;
 pub use crate::levelrender::*;
@@ -17,6 +20,7 @@ pub use crate::physics::*;
 pub use crate::playercamera::*;
 pub use crate::resources::*;
 pub use crate::states::*;
+pub use playercontroller::*;
 
 use bevy::window::PrimaryWindow;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -44,7 +48,7 @@ pub const CHUNK_PER_LEVEL: usize = 16;
 
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.5)))
+        .insert_resource(ClearColor(Color::TURQUOISE))
         .add_plugins(
             DefaultPlugins
                 .set(ImagePlugin::default_nearest())
@@ -61,6 +65,7 @@ fn main() {
         .add_plugins(LevelGeneratorPlugin)
         .add_plugins(LevelRenderPlugin)
         .add_plugins(PhysicsPlugin)
+        .add_plugins(DebugGizmoPlugin)
         .run();
 }
 
