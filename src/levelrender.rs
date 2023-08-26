@@ -1,40 +1,15 @@
 use crate::*;
-use bevy::{prelude::*, utils::HashSet};
+use bevy::prelude::*;
 
 pub struct LevelRenderPlugin;
 
 impl Plugin for LevelRenderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_level)
+        app //.add_systems(Startup, spawn_level)
+            .insert_resource(VisibleChunks::default())
+            .add_systems(PreUpdate, calculate_chunk_visibility)
             .add_systems(Update, render_level);
     }
-}
-
-pub fn spawn_level(
-    mut commands: Commands,
-    background_assets: Res<BackgroundAssets>,
-    mut game_data: ResMut<GameWorld>,
-) {
-    // let level_chunk = LevelChunk::default();
-
-    let visible_chunks = find_visible_chunks(100.);
-
-    for chunk in visible_chunks.chunk_list.iter() {
-        let chunk_id = create_chunk(
-            &mut commands,
-            *chunk,
-            &game_data.level.get(0).unwrap().chunks.get(*chunk).unwrap(),
-            &background_assets,
-        );
-        game_data
-            .level
-            .get_mut(0)
-            .unwrap()
-            .chunk_map
-            .insert(*chunk, chunk_id);
-    }
-
-    commands.insert_resource(visible_chunks);
 }
 
 pub fn create_chunk(
@@ -59,19 +34,22 @@ pub fn create_chunk(
             for y in 0..CHUNK_HEIGHT {
                 for x in 0..CHUNK_WIDTH {
                     if let Some(tile) = level_chunk.data[y * CHUNK_HEIGHT + x] {
-                        parent.spawn(SpriteSheetBundle {
-                            texture_atlas: background_assets.handle.clone(),
-                            transform: Transform {
-                                translation: Vec3::new(
-                                    (x as f32 * BG_UNIT_WIDTH) + (BG_UNIT_WIDTH / 2.0),
-                                    (y as f32 * BG_UNIT_HEIGHT) + (BG_UNIT_HEIGHT / 2.0),
-                                    2.0,
-                                ),
+                        parent
+                            .spawn(SpriteSheetBundle {
+                                texture_atlas: background_assets.handle.clone(),
+                                transform: Transform {
+                                    translation: Vec3::new(
+                                        (x as f32 * BG_UNIT_WIDTH) + (BG_UNIT_WIDTH / 2.0),
+                                        (y as f32 * BG_UNIT_HEIGHT) + (BG_UNIT_HEIGHT / 2.0),
+                                        2.0,
+                                    ),
+                                    ..Default::default()
+                                },
+                                sprite: TextureAtlasSprite::new(tile as usize),
                                 ..Default::default()
-                            },
-                            sprite: TextureAtlasSprite::new(tile as usize),
-                            ..Default::default()
-                        });
+                            })
+                            .insert(RigidBody::Fixed)
+                            .insert(Collider::cuboid(BG_UNIT_WIDTH / 2., BG_UNIT_HEIGHT / 2.));
                     }
                 }
             }
@@ -82,13 +60,13 @@ pub fn create_chunk(
 
 pub fn render_level(
     mut commands: Commands,
-    visible_chunks: Res<VisibleChunks>,
-    player_query: Query<&Transform, With<Player>>,
+    new_visible_chunks: Res<VisibleChunks>,
     background_assets: Res<BackgroundAssets>,
     mut game_data: ResMut<GameWorld>,
+    mut visible_chunks: Local<VisibleChunks>,
 ) {
-    let transform = player_query.get_single().unwrap();
-    let new_visible_chunks = find_visible_chunks(transform.translation.x);
+    let mut chunks_to_be_removed = Vec::new();
+    let mut chunks_to_be_inserted = Vec::new();
 
     for chunk in visible_chunks.chunk_list.iter() {
         if new_visible_chunks.chunk_list.get(chunk).is_none() {
@@ -105,7 +83,12 @@ pub fn render_level(
                 "Chunk {:?} removed, entity {:?} deleted",
                 chunk, removed_chunk
             );
+            chunks_to_be_removed.push(*chunk);
         }
+    }
+
+    for chunk in chunks_to_be_removed.iter() {
+        visible_chunks.chunk_list.remove(chunk);
     }
 
     for chunk in new_visible_chunks.chunk_list.iter() {
@@ -114,7 +97,13 @@ pub fn render_level(
             let new_chunk_id = create_chunk(
                 &mut commands,
                 *chunk,
-                &game_data.level.get(0).unwrap().chunks.get(*chunk).unwrap(),
+                game_data
+                    .level
+                    .get(0)
+                    .unwrap()
+                    .chunks
+                    .get(*chunk)
+                    .unwrap_or(&construct_flat_level_chunk()),
                 &background_assets,
             );
             game_data
@@ -123,32 +112,42 @@ pub fn render_level(
                 .unwrap()
                 .chunk_map
                 .insert(*chunk, new_chunk_id);
+            visible_chunks.chunk_list.insert(*chunk);
             info!("Created chunk {:?} - Entity {:?}", chunk, new_chunk_id);
+            chunks_to_be_inserted.push(*chunk);
         }
     }
 
-    commands.insert_resource(new_visible_chunks);
+    for chunk in chunks_to_be_inserted.iter() {
+        visible_chunks.chunk_list.insert(*chunk);
+    }
 }
 
-pub fn find_visible_chunks(player_location: f32) -> VisibleChunks {
-    // Chunk player is in
-    let player_chunk = player_location as usize / (CHUNK_WIDTH * BG_UNIT_WIDTH as usize);
+pub fn calculate_chunk_visibility(
+    camera_query: Query<&Camera, With<PrimaryCamera>>,
+    transform_query: Query<&Transform, With<PrimaryCamera>>,
+    mut visible_chunks: ResMut<VisibleChunks>,
+) {
+    visible_chunks.chunk_list.clear();
 
-    // If they're in the first chunk don't give back -1
-    let mut previous_chunk = None;
-    if player_chunk != 0 {
-        previous_chunk = Some(player_chunk - 1);
+    let camera = camera_query.single();
+    let transform = transform_query.single();
+
+    let camera_width = camera.physical_target_size().unwrap().x as f32;
+    let chunk_width = CHUNK_WIDTH as f32 * BG_UNIT_WIDTH;
+
+    // what chunk is the middle of the camera?
+    let middle_chunk = (transform.translation.x / chunk_width) as usize;
+    // f32 exact number of chunks
+    let exact_chunks_per_viewport = camera_width / chunk_width;
+
+    // add one for the round up to usize, add two buffer each side
+    let chunks_per_viewport = exact_chunks_per_viewport as usize + 5;
+
+    let starting_chunk = middle_chunk.saturating_sub(chunks_per_viewport / 2);
+    let ending_chunk = middle_chunk + chunks_per_viewport / 2;
+
+    for chunk_index in starting_chunk..ending_chunk {
+        visible_chunks.chunk_list.insert(chunk_index);
     }
-
-    // If they're in the final chunk we can just generate a blank chunk to display after anyway
-    let next_chunk = player_chunk + 1;
-
-    let mut chunk_list = HashSet::new();
-    if previous_chunk.is_some() {
-        chunk_list.insert(previous_chunk.unwrap());
-    }
-    chunk_list.insert(player_chunk);
-    chunk_list.insert(next_chunk);
-    //info!("{:?}", chunk_list);
-    VisibleChunks { chunk_list }
 }

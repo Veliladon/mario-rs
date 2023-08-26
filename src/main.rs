@@ -24,10 +24,12 @@ pub use playercontroller::*;
 
 use bevy::window::PrimaryWindow;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+
 pub use leafwing_input_manager::prelude::*;
 
 pub use bevy::log::LogPlugin;
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 400.;
 pub const JUMP_HEIGHT: f32 = 2.;
@@ -66,6 +68,8 @@ fn main() {
         .add_plugins(LevelRenderPlugin)
         .add_plugins(PhysicsPlugin)
         .add_plugins(DebugGizmoPlugin)
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        .add_plugins(RapierDebugRenderPlugin::default())
         .run();
 }
 
@@ -92,6 +96,12 @@ pub fn spawn_player(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
         .insert(Player {
             walking_state: PlayerState::Idle,
             velocity: Vec2::new(0., 0.),
-        });
+        })
+        .insert(RigidBody::KinematicPositionBased)
+        .insert(Collider::cuboid(
+            PLAYER_SPRITE_WIDTH / 2.,
+            PLAYER_SPRITE_HEIGHT / 2.,
+        ))
+        .insert(KinematicCharacterController::default());
     info!("Spawned Player");
 }
