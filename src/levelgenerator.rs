@@ -80,11 +80,11 @@ impl Default for LevelChunk {
 pub fn construct_flat_level_chunk() -> LevelChunk {
     let mut data: Vec<Option<Tile>> = vec![None; CHUNK_HEIGHT * CHUNK_WIDTH];
     for x in 0..CHUNK_WIDTH {
-        data[GROUND_HEIGHT * CHUNK_HEIGHT + x] = Some(Tile::Ground);
+        data[GROUND_HEIGHT * CHUNK_WIDTH + x] = Some(Tile::Ground);
     }
     for y in (0..GROUND_HEIGHT).rev() {
         for x in 0..CHUNK_WIDTH {
-            data[y * CHUNK_HEIGHT + x] = Some(Tile::Filler);
+            data[y * CHUNK_WIDTH + x] = Some(Tile::Filler);
         }
     }
 

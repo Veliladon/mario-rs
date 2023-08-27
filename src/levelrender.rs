@@ -33,7 +33,7 @@ pub fn create_chunk(
         .with_children(|parent| {
             for y in 0..CHUNK_HEIGHT {
                 for x in 0..CHUNK_WIDTH {
-                    if let Some(tile) = level_chunk.data[y * CHUNK_HEIGHT + x] {
+                    if let Some(tile) = level_chunk.data[y * CHUNK_WIDTH + x] {
                         parent
                             .spawn(SpriteSheetBundle {
                                 texture_atlas: background_assets.handle.clone(),
@@ -128,7 +128,7 @@ pub fn calculate_chunk_visibility(
     let starting_chunk = middle_chunk.saturating_sub(chunks_per_viewport / 2);
     let ending_chunk = middle_chunk + chunks_per_viewport / 2;
 
-    for chunk_index in starting_chunk..ending_chunk {
+    for chunk_index in starting_chunk..(ending_chunk + 1) {
         visible_chunks.chunk_list.insert(chunk_index);
     }
 }

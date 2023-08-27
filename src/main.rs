@@ -43,7 +43,7 @@ pub const BG_SPRITE_SHEET: &str = "tiles_packed.png";
 pub const BG_UNIT_HEIGHT: f32 = 18.;
 pub const BG_UNIT_WIDTH: f32 = 18.;
 
-pub const CHUNK_WIDTH: usize = 32;
+pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_HEIGHT: usize = 32;
 pub const GROUND_HEIGHT: usize = 2;
 pub const CHUNK_PER_LEVEL: usize = 16;
