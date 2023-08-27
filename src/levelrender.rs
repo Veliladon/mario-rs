@@ -62,33 +62,25 @@ pub fn render_level(
     mut commands: Commands,
     new_visible_chunks: Res<VisibleChunks>,
     background_assets: Res<BackgroundAssets>,
-    mut game_data: ResMut<GameWorld>,
-    mut visible_chunks: Local<VisibleChunks>,
+    game_data: Res<GameWorld>,
+    mut visible_chunks: Local<VisibleChunksMap>,
 ) {
     let mut chunks_to_be_removed = Vec::new();
-    let mut chunks_to_be_inserted = Vec::new();
 
-    for chunk in visible_chunks.chunk_list.iter() {
+    for (chunk, _) in visible_chunks.chunk_list.iter() {
         if new_visible_chunks.chunk_list.get(chunk).is_none() {
             info!("Chunk {:?} has disappeared", chunk);
-            let removed_chunk = game_data
-                .level
-                .get_mut(0)
-                .unwrap()
-                .chunk_map
-                .remove(chunk)
-                .unwrap();
-            commands.entity(removed_chunk).despawn_recursive();
-            info!(
-                "Chunk {:?} removed, entity {:?} deleted",
-                chunk, removed_chunk
-            );
             chunks_to_be_removed.push(*chunk);
         }
     }
 
     for chunk in chunks_to_be_removed.iter() {
-        visible_chunks.chunk_list.remove(chunk);
+        let removed_chunk = visible_chunks.chunk_list.remove(chunk).unwrap();
+        info!(
+            "Chunk {:?} removed, entity {:?} deleted",
+            chunk, removed_chunk
+        );
+        commands.entity(removed_chunk).despawn_recursive();
     }
 
     for chunk in new_visible_chunks.chunk_list.iter() {
@@ -106,20 +98,9 @@ pub fn render_level(
                     .unwrap_or(&construct_flat_level_chunk()),
                 &background_assets,
             );
-            game_data
-                .level
-                .get_mut(0)
-                .unwrap()
-                .chunk_map
-                .insert(*chunk, new_chunk_id);
-            visible_chunks.chunk_list.insert(*chunk);
+            visible_chunks.chunk_list.insert(*chunk, new_chunk_id);
             info!("Created chunk {:?} - Entity {:?}", chunk, new_chunk_id);
-            chunks_to_be_inserted.push(*chunk);
         }
-    }
-
-    for chunk in chunks_to_be_inserted.iter() {
-        visible_chunks.chunk_list.insert(*chunk);
     }
 }
 

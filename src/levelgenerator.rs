@@ -1,5 +1,5 @@
 use crate::*;
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 
 pub struct LevelGeneratorPlugin;
 
@@ -10,7 +10,7 @@ pub struct GameWorld {
 #[derive(Clone, Debug)]
 pub struct LevelData {
     pub chunks: Vec<LevelChunk>,
-    pub chunk_map: HashMap<usize, Entity>,
+    // pub chunk_map: HashMap<usize, Entity>,
 }
 
 #[derive(Clone, Debug)]
@@ -47,7 +47,6 @@ impl Default for GameWorld {
 impl Default for LevelData {
     fn default() -> Self {
         let mut chunks = Vec::new();
-        let chunk_map = HashMap::new();
 
         // First chunk is flat without any obstacles
         let first_chunk = construct_flat_level_chunk();
@@ -62,7 +61,7 @@ impl Default for LevelData {
         let last_chunk = construct_flat_level_chunk();
         chunks.push(last_chunk);
         info!("{} chunks generated", chunks.len());
-        LevelData { chunks, chunk_map }
+        LevelData { chunks }
     }
 }
 

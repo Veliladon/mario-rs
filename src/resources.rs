@@ -32,3 +32,11 @@ impl Default for VisibleChunks {
 pub struct VisibleChunksMap {
     pub chunk_list: HashMap<usize, Entity>,
 }
+
+impl Default for VisibleChunksMap {
+    fn default() -> VisibleChunksMap {
+        VisibleChunksMap {
+            chunk_list: HashMap::new(),
+        }
+    }
+}
