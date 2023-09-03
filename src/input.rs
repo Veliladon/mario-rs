@@ -39,6 +39,10 @@ pub fn player_control(mut player_query: Query<(&ActionState<PlatformAction>, &mu
         direction.x = 1.0;
     }
 
+    /*if player.walking_state == PlayerState::Idle || player.walking_state == PlayerState::Walking {
+        direction.y = 0.;
+    } */
+
     // Player must be on the ground to jump.
 
     if action_state.just_pressed(PlatformAction::Jump)
@@ -48,6 +52,7 @@ pub fn player_control(mut player_query: Query<(&ActionState<PlatformAction>, &mu
     || player.walking_state == PlayerState::Walking) */
     {
         direction.y = JUMP_HEIGHT;
+        player.walking_state = PlayerState::Jumping;
         info!("Jump!");
     }
 

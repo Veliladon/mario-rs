@@ -21,6 +21,10 @@ pub struct LevelChunk {
 #[derive(Copy, Clone, Debug)]
 pub enum Tile {
     Ground = 22,
+    GroudRightEdge = 23,
+    GroundLeftEdge = 21,
+    RightEdge = 123,
+    LeftEdge = 121,
     Filler = 122,
 }
 
@@ -52,8 +56,10 @@ impl Default for LevelData {
         let first_chunk = construct_flat_level_chunk();
         chunks.push(first_chunk);
 
+        chunks.push(construct_gap(3, 3, construct_flat_level_chunk()));
+
         // Intermediate chunks can be created however we want, for now just flat ground
-        for _ in 1..(CHUNK_PER_LEVEL - 1) {
+        for _ in 2..(CHUNK_PER_LEVEL - 1) {
             chunks.push(construct_flat_level_chunk());
         }
 
@@ -89,4 +95,15 @@ pub fn construct_flat_level_chunk() -> LevelChunk {
     }
 
     LevelChunk { data }
+}
+
+pub fn construct_mushroom(x: usize, y: usize, width: usize, chunk: LevelChunk) {}
+
+pub fn construct_gap(x: usize, width: usize, mut chunk: LevelChunk) -> LevelChunk {
+    for y in 0..CHUNK_HEIGHT {
+        for x in x..(x + width) {
+            chunk.data[y * CHUNK_WIDTH + x] = None;
+        }
+    }
+    chunk
 }

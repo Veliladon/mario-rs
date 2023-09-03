@@ -8,7 +8,7 @@ pub enum GameState {
     GameOver,
 }
 
-#[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
+#[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default, Reflect)]
 pub enum PlayerState {
     #[default]
     Idle,

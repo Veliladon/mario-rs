@@ -70,6 +70,7 @@ fn main() {
         .add_plugins(DebugGizmoPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugins(RapierDebugRenderPlugin::default())
+        .register_type::<Player>()
         .run();
 }
 
