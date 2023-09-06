@@ -32,7 +32,9 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 400.;
-pub const JUMP_HEIGHT: f32 = 2.;
+pub const MAX_JUMP_HEIGHT: f32 = 100.0;
+pub const JUMP_APEX_TIME: f32 = 0.4;
+pub const JUMP_IMPULSE: f32 = 2.;
 pub const SCALE: f32 = 2.;
 
 pub const PLAYER_SPRITE_SHEET: &str = "blue_alien.png";
@@ -94,10 +96,7 @@ pub fn spawn_player(mut commands: Commands, texture_atlas: Res<PlayerAssets>) {
                 (KeyCode::Space, PlatformAction::Jump),
             ]),
         })
-        .insert(Player {
-            walking_state: PlayerState::Idle,
-            velocity: Vec2::new(0., 0.),
-        })
+        .insert(Player)
         .insert(RigidBody::KinematicPositionBased)
         .insert(Collider::cuboid(
             PLAYER_SPRITE_WIDTH / 2.,

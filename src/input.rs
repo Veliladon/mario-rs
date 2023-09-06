@@ -22,43 +22,51 @@ pub enum PlatformAction {
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(InputManagerPlugin::<PlatformAction>::default())
-            .add_systems(Update, player_control);
+            .add_systems(Update, player_control)
+            .add_systems(Update, jump)
+            .register_type::<Player>();
+
         //        .add_systems(Update, walk);
     }
 }
 
-pub fn player_control(mut player_query: Query<(&ActionState<PlatformAction>, &mut Player)>) {
-    let (action_state, mut player) = player_query.single_mut();
+pub fn player_control(
+    action_query: Query<&ActionState<PlatformAction>>,
+    mut physics_query: Query<&mut KinematicCharacterController>,
+    time: Res<Time>,
+) {
+    let action = action_query.single();
+    let mut physics = physics_query.single_mut();
+    let mut direction = 0.0;
 
-    let mut direction = player.velocity;
-
-    if action_state.pressed(PlatformAction::Left) {
-        direction.x = -1.0;
+    if action.pressed(PlatformAction::Left) {
+        direction = -1.0 * time.delta_seconds() * PLAYER_SPEED;
     }
-    if action_state.pressed(PlatformAction::Right) {
-        direction.x = 1.0;
+    if action.pressed(PlatformAction::Right) {
+        direction = 1.0 * time.delta_seconds() * PLAYER_SPEED;
+    }
+    match physics.translation {
+        Some(vec) => physics.translation = Some(Vec2::new(direction, vec.y)),
+        None => physics.translation = Some(Vec2::new(direction, 0.0)),
+    }
+}
+
+pub fn jump(
+    action_query: Query<&ActionState<PlatformAction>>,
+    mut commands: Commands,
+    player_query: Query<
+        (Entity, &KinematicCharacterControllerOutput),
+        (With<KinematicCharacterController>, Without<Jump>),
+    >,
+) {
+    if player_query.is_empty() {
+        return;
     }
 
-    /*if player.walking_state == PlayerState::Idle || player.walking_state == PlayerState::Walking {
-        direction.y = 0.;
-    } */
+    let action = action_query.single();
+    let (player, output) = player_query.single();
 
-    // Player must be on the ground to jump.
-
-    if action_state.just_pressed(PlatformAction::Jump)
-        && (player.walking_state == PlayerState::Idle
-            || player.walking_state == PlayerState::Walking)
-    /*(player.walking_state == PlayerState::Idle
-    || player.walking_state == PlayerState::Walking) */
-    {
-        direction.y = JUMP_HEIGHT;
-        player.walking_state = PlayerState::Jumping;
-        info!("Jump!");
+    if action.pressed(PlatformAction::Jump) && output.grounded {
+        commands.entity(player).insert(Jump(0.0));
     }
-
-    // Physics module takes the player state back to idle after finishing the jump
-
-    //player.velocity = direction;
-
-    player.velocity = direction;
 }

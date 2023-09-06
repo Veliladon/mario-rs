@@ -5,73 +5,47 @@ pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, process_physics.after(player_control))
-            .add_systems(PostUpdate, resolve_state_and_clamp); //.after(process_physics));
-
-        //.add_systems(Update, process_physics);
+        app.add_systems(Update, rise).add_systems(Update, fall);
     }
 }
 
-pub fn process_physics(
-    player_query: Query<&mut Player>,
-    mut physics_query: Query<&mut KinematicCharacterController>,
+pub fn rise(
+    mut commands: Commands,
     time: Res<Time>,
+    mut query: Query<(Entity, &mut KinematicCharacterController, &mut Jump)>,
 ) {
-    let player = player_query.single();
-    let mut physics = physics_query.single_mut();
-    let mut translation = Vec2::new(0., 0.);
-
-    translation.x += player.velocity.x * PLAYER_SPEED * time.delta_seconds();
-
-    if player.velocity.y != 0.0 {
-        translation.y += player.velocity.y * PLAYER_SPEED * time.delta_seconds();
-    }
-
-    physics.translation = Some(translation);
-}
-
-pub fn resolve_state_and_clamp(
-    mut player_query: Query<(&mut Player, &mut Transform)>,
-    physics_query: Query<&KinematicCharacterControllerOutput>,
-    time: Res<Time>,
-) {
-    let (mut player, mut transform) = player_query.single_mut();
-
-    if let Ok(physics) = physics_query.get_single() {
-        if physics.grounded {
-            player.velocity.y = 0.;
-            player.walking_state = PlayerState::Idle;
-        }
-
-        if physics.grounded && player.velocity.x != 0. {
-            player.walking_state = PlayerState::Walking;
-        }
-
-        if physics.grounded == false {
-            player.velocity.y -= 9.8 * time.delta_seconds();
-        }
-
-    /*   if physics.grounded == false && player.walking_state != PlayerState::Jumping {
-        player.walking_state = PlayerState::Falling;
-    } */
-
-    /*         if physics.grounded == false
-        && player.walking_state == PlayerState::Jumping
-        && player.velocity.y <= 0.
-    {
-        player.walking_state = PlayerState::Falling;
-    } */
-    /*if physics.grounded
-        && (player.walking_state != PlayerState::Jumping
-            || player.walking_state != PlayerState::Falling)
-    {} */
-    } else {
+    if query.is_empty() {
         return;
     }
 
-    if transform.translation.x < 0. + (PLAYER_SPRITE_WIDTH / 2.) {
-        transform.translation.x = 0. + (PLAYER_SPRITE_WIDTH / 2.);
+    let (entity, mut physics, mut jump) = query.single_mut();
+
+    let mut movement = time.delta_seconds() * (PLAYER_SPEED * JUMP_IMPULSE);
+
+    if movement + jump.0 >= MAX_JUMP_HEIGHT {
+        movement = MAX_JUMP_HEIGHT - jump.0;
+        commands.entity(entity).remove::<Jump>();
     }
 
-    player.velocity.x = player.velocity.x / 2.0;
+    jump.0 += movement;
+
+    match physics.translation {
+        Some(vec) => physics.translation = Some(Vec2::new(vec.x, movement)),
+        None => physics.translation = Some(Vec2::new(0.0, movement)),
+    }
+}
+
+pub fn fall(time: Res<Time>, mut query: Query<&mut KinematicCharacterController, Without<Jump>>) {
+    if query.is_empty() {
+        return;
+    }
+
+    let mut physics = query.single_mut();
+
+    let movement = time.delta_seconds() * (PLAYER_SPEED * JUMP_IMPULSE) / 1.5 * -1.0;
+
+    match physics.translation {
+        Some(vec) => physics.translation = Some(Vec2::new(vec.x, movement)),
+        None => physics.translation = Some(Vec2::new(0.0, movement)),
+    }
 }
