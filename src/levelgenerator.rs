@@ -97,7 +97,7 @@ pub fn construct_flat_level_chunk() -> LevelChunk {
     LevelChunk { data }
 }
 
-pub fn construct_mushroom(x: usize, y: usize, width: usize, chunk: LevelChunk) {}
+/*pub fn construct_mushroom(x: usize, y: usize, width: usize, chunk: LevelChunk) {}*/
 
 pub fn construct_gap(x: usize, width: usize, mut chunk: LevelChunk) -> LevelChunk {
     for y in 0..CHUNK_HEIGHT {
